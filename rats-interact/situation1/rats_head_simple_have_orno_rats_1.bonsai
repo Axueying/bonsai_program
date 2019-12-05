@@ -1,0 +1,1083 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<WorkflowBuilder Version="2.4.0-preview">
+  <Workflow xmlns:q2="clr-namespace:Bonsai.Scripting;assembly=Bonsai.Scripting" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:q3="clr-namespace:Bonsai.IO;assembly=Bonsai.System" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:q4="clr-namespace:Bonsai.Dsp;assembly=Bonsai.Dsp" xmlns:q1="clr-namespace:Bonsai.Vision;assembly=Bonsai.Vision" xmlns="https://horizongir.org/bonsai">
+    <Nodes>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q1:AdaptiveThreshold">
+          <q1:MaxValue>255</q1:MaxValue>
+          <q1:AdaptiveMethod>MeanC</q1:AdaptiveMethod>
+          <q1:ThresholdType>BinaryInv</q1:ThresholdType>
+          <q1:BlockSize>111</q1:BlockSize>
+          <q1:Parameter>1</q1:Parameter>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q1:FindContours">
+          <q1:Mode>ConnectedComponent</q1:Mode>
+          <q1:Method>ChainApproxNone</q1:Method>
+          <q1:Offset>
+            <q1:X>0</q1:X>
+            <q1:Y>0</q1:Y>
+          </q1:Offset>
+          <q1:MinArea>300</q1:MinArea>
+          <q1:MaxArea xsi:nil="true" />
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q1:BinaryRegionAnalysis" />
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q1:LargestBinaryRegion" />
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q1:FileCapture">
+          <q1:FileName>2_03_H_191108160245-127.avi</q1:FileName>
+          <q1:PlaybackRate>0</q1:PlaybackRate>
+          <q1:StartPosition>10</q1:StartPosition>
+          <q1:PositionUnits>Frames</q1:PositionUnits>
+          <q1:Loop>false</q1:Loop>
+          <q1:Playing>true</q1:Playing>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="MemberSelector">
+        <Selector>Centroid</Selector>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q1:Crop">
+          <q1:RegionOfInterest>
+            <q1:X>404</q1:X>
+            <q1:Y>246</q1:Y>
+            <q1:Width>84</q1:Width>
+            <q1:Height>175</q1:Height>
+          </q1:RegionOfInterest>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q1:ColorBalance">
+          <q1:Scale>
+            <q1:Val0>60</q1:Val0>
+            <q1:Val1>60</q1:Val1>
+            <q1:Val2>60</q1:Val2>
+            <q1:Val3>1</q1:Val3>
+          </q1:Scale>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q1:Grayscale" />
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q1:AdaptiveThreshold">
+          <q1:MaxValue>255</q1:MaxValue>
+          <q1:AdaptiveMethod>MeanC</q1:AdaptiveMethod>
+          <q1:ThresholdType>BinaryInv</q1:ThresholdType>
+          <q1:BlockSize>111</q1:BlockSize>
+          <q1:Parameter>1</q1:Parameter>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q1:FindContours">
+          <q1:Mode>ConnectedComponent</q1:Mode>
+          <q1:Method>ChainApproxNone</q1:Method>
+          <q1:Offset>
+            <q1:X>0</q1:X>
+            <q1:Y>0</q1:Y>
+          </q1:Offset>
+          <q1:MinArea>60</q1:MinArea>
+          <q1:MaxArea xsi:nil="true" />
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q1:BinaryRegionAnalysis" />
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q1:LargestBinaryRegion" />
+      </Expression>
+      <Expression xsi:type="MemberSelector">
+        <Selector>Centroid</Selector>
+      </Expression>
+      <Expression xsi:type="MemberSelector">
+        <Selector>Count</Selector>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q1:Crop">
+          <q1:RegionOfInterest>
+            <q1:X>372</q1:X>
+            <q1:Y>35</q1:Y>
+            <q1:Width>644</q1:Width>
+            <q1:Height>622</q1:Height>
+          </q1:RegionOfInterest>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="Zip" />
+      </Expression>
+      <Expression xsi:type="q2:PythonTransform">
+        <q2:Name>Find real heading</q2:Name>
+        <q2:Script>import math
+import clr
+clr.AddReference("OpenCV.Net")
+from OpenCV.Net import *
+from OpenCV.Net import Point2f
+from System import Tuple
+
+@returns(Point2f)
+def process(value):
+  f_list = value.Item1
+  good_features = [feature for feature in f_list]
+  n = len(good_features)
+  sum1 = 0
+  sum2 = 0
+  distances = []
+  if n!=0:
+    for gfeature in good_features:
+      sum1 += gfeature.X 
+      sum2 += gfeature.Y  
+  
+    av_x = sum1/n
+    av_y = sum2/n
+    distances = [dista(feature,av_x,av_y) for feature in f_list]
+  head_pos = Point2f(0, 0)
+  if len(distances) != 0 and len(good_features) != 1:
+    p0 = distances.index(max(distances))
+    del good_features[p0]
+    if len(good_features)==3:
+  ## if there's two objects, take an average of these two eyes
+    
+      avg_x = (good_features[0].X+good_features[1].X+good_features[2].X)/3.0
+      avg_y = (good_features[0].Y+good_features[1].Y+good_features[2].Y)/2.0
+      head_pos = Point2f(avg_x, avg_y)
+    if len(good_features)==2:
+    ## if there's two objects, take an average of these two eyes
+      
+      avg_x = (good_features[0].X+good_features[1].X)/2.0
+      avg_y = (good_features[0].Y+good_features[1].Y)/2.0
+      head_pos = Point2f(avg_x, avg_y)
+    else:
+      ## otherwise we just use the first good feature, assuming it's an eye
+      head_pos = good_features[0]
+  return head_pos
+def dista(a,b,c):
+  dx = (a.X - b)*1
+  dy = (a.Y - c)*1
+  de= math.hypot(dx,dy)
+  return de
+
+</q2:Script>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q1:ColorBalance">
+          <q1:Scale>
+            <q1:Val0>2.8</q1:Val0>
+            <q1:Val1>2.8</q1:Val1>
+            <q1:Val2>2.8</q1:Val2>
+            <q1:Val3>1</q1:Val3>
+          </q1:Scale>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q1:Grayscale" />
+      </Expression>
+      <Expression xsi:type="q2:PythonTransform">
+        <q2:Script>import clr
+clr.AddReference("OpenCV.Net")
+from OpenCV.Net import *
+
+@returns(IplImage)
+def process(value):
+  image = value
+  output = image.Clone()
+  #mm=mask(Rect(0,0,mask.cols/2,mask.rows))
+  #mm={Scalar(0,0,0)}
+  CV.Rectangle(output, Point(20,192), Point(120,388), Scalar.Rgb(255, 255, 255), -1)
+  return output</q2:Script>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q1:GoodFeaturesToTrack">
+          <q1:MaxFeatures>3</q1:MaxFeatures>
+          <q1:QualityLevel>0.9</q1:QualityLevel>
+          <q1:MinDistance>0</q1:MinDistance>
+          <q1:RegionOfInterest>
+            <q1:X>0</q1:X>
+            <q1:Y>0</q1:Y>
+            <q1:Width>0</q1:Width>
+            <q1:Height>0</q1:Height>
+          </q1:RegionOfInterest>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="q2:PythonTransform">
+        <q2:Name>distance text</q2:Name>
+        <q2:Script>import math
+import clr
+clr.AddReference("OpenCV.Net")
+from OpenCV.Net import *
+@returns(float)
+def process(value):
+  dx = (value.X - 212)
+  dy = (value.Y - 47.5)
+  a= math.hypot(dx,dy)
+  return a</q2:Script>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="Zip" />
+      </Expression>
+      <Expression xsi:type="q2:PythonTransform">
+        <q2:Name>distance interact</q2:Name>
+        <q2:Script>'''
+import math
+import clr
+clr.AddReference("OpenCV.Net")
+from OpenCV.Net import *
+@returns(float)
+def process(value):
+  dx = (value.X - 212)
+  dy = (value.Y - 47.5)
+  a= math.hypot(dx,dy)
+  return a
+'''
+
+import math
+import clr
+clr.AddReference("OpenCV.Net")
+from OpenCV.Net import *
+@returns(IplImage)
+def process(value):
+  if value.Item3 &gt;60.0:
+    image = value.Item2
+    output = image.Clone()
+    X1 = 169
+    Y1 = 15
+    X2 = 255
+    Y2 = 80
+    if((X1&lt;value.Item1.X&lt;X2)and(Y1&lt;value.Item1.Y&lt;Y2)):
+      CV.Rectangle(output, Point(X1,Y1), Point(X2,Y2), Scalar.Rgb(0, 255, 0), thickness=1)
+    else:
+      CV.Rectangle(output, Point(X1,Y1), Point(X2,Y2), Scalar.Rgb(0, 0, 255), thickness=1)
+    return output</q2:Script>
+      </Expression>
+      <Expression xsi:type="MemberSelector">
+        <Selector>Area</Selector>
+      </Expression>
+      <Expression xsi:type="q2:PythonTransform">
+        <q2:Name>distance interact</q2:Name>
+        <q2:Script>'''
+import math
+import clr
+clr.AddReference("OpenCV.Net")
+from OpenCV.Net import *
+@returns(float)
+def process(value):
+  dx = (value.X - 212)
+  dy = (value.Y - 47.5)
+  a= math.hypot(dx,dy)
+  return a
+'''
+
+import math
+import clr
+clr.AddReference("OpenCV.Net")
+from OpenCV.Net import *
+@returns(float)
+def process(value):
+  cod = 0
+  if value.Item3.Val0 &gt;1000:
+    X1 = 18
+    Y1 = 192
+    X2 = 127
+    Y2 = 393
+    if((X1&lt;value.Item1.X&lt;X2)and(Y1&lt;value.Item1.Y&lt;Y2)):
+      cod = 1.0      
+    else:
+      cod = 0
+  return cod</q2:Script>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="GateInterval">
+          <Interval>PT4S</Interval>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="q2:PythonTransform">
+        <q2:Name>rats interact</q2:Name>
+        <q2:Script>import math
+import clr
+clr.AddReference("OpenCV.Net")
+from OpenCV.Net import *
+@returns(float)
+
+def process(value):
+  count = value
+  return count
+  </q2:Script>
+      </Expression>
+      <Expression xsi:type="q2:PythonTransform">
+        <q2:Script>import math
+import clr
+clr.AddReference("OpenCV.Net")
+from OpenCV.Net import *
+@returns(bool)
+
+def process(value):
+  lo = False
+  if value == 1:
+    lo = True
+  elif value == 0:
+    lo = False
+  return lo</q2:Script>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="DistinctUntilChanged" />
+      </Expression>
+      <Expression xsi:type="q2:PythonTransform">
+        <q2:Name>distance interact</q2:Name>
+        <q2:Script>'''
+import math
+import clr
+clr.AddReference("OpenCV.Net")
+from OpenCV.Net import *
+@returns(float)
+def process(value):
+  dx = (value.X - 212)
+  dy = (value.Y - 47.5)
+  a= math.hypot(dx,dy)
+  return a
+'''
+
+import math
+import clr
+clr.AddReference("OpenCV.Net")
+from OpenCV.Net import *
+@returns(float)
+def process(value):
+  cod = 0
+  if value.Item3.Val0 &lt;=1000:
+    X1 = 18
+    Y1 = 192
+    X2 = 127
+    Y2 = 393
+    if((X1&lt;value.Item1.X&lt;X2)and(Y1&lt;value.Item1.Y&lt;Y2)):
+      cod = 1.0      
+    else:
+      cod = 0
+  return cod</q2:Script>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="GateInterval">
+          <Interval>PT4S</Interval>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="q2:PythonTransform">
+        <q2:Name>no rats interact</q2:Name>
+        <q2:Script>import math
+import clr
+clr.AddReference("OpenCV.Net")
+from OpenCV.Net import *
+@returns(float)
+
+def process(value):
+  count = value
+  return count
+  </q2:Script>
+      </Expression>
+      <Expression xsi:type="q2:PythonTransform">
+        <q2:Script>import math
+import clr
+clr.AddReference("OpenCV.Net")
+from OpenCV.Net import *
+@returns(bool)
+
+def process(value):
+  lo = False
+  if value == 1:
+    lo = True
+  elif value == 0:
+    lo = False
+  return lo</q2:Script>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="DistinctUntilChanged" />
+      </Expression>
+      <Expression xsi:type="q2:PythonTransform">
+        <q2:Name>norats time</q2:Name>
+        <q2:Script>import math
+import clr
+clr.AddReference("OpenCV.Net")
+from OpenCV.Net import *
+@returns(float)
+def process(value):
+  a= value/30.0
+  return a</q2:Script>
+      </Expression>
+      <Expression xsi:type="q2:PythonTransform">
+        <q2:Script>@returns(bool)
+def process(value):
+  return True</q2:Script>
+      </Expression>
+      <Expression xsi:type="q2:PythonTransform">
+        <q2:Name>condition</q2:Name>
+        <q2:Script>import math
+import clr
+clr.AddReference("OpenCV.Net")
+from OpenCV.Net import *
+@returns(float)
+def process(value):
+  if value &gt;=150:
+    a = 0.0
+  else:
+    a= 1.0
+  return a</q2:Script>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="Zip" />
+      </Expression>
+      <Expression xsi:type="q2:PythonTransform">
+        <q2:Script>import math
+import clr
+clr.AddReference("OpenCV.Net")
+from OpenCV.Net import *
+@returns(float)
+def process(value):
+  if value.Item2 == 1.0:
+    b = value.Item1
+  else:
+    b = 0.0
+  return b</q2:Script>
+      </Expression>
+      <Expression xsi:type="Accumulate" />
+      <Expression xsi:type="Disable">
+        <Builder xsi:type="q3:CsvWriter">
+          <q3:FileName>H:\脑所-实验数据\LP课题\行为测试-其他\OFT\20190219\no_mouse_interact00.csv</q3:FileName>
+          <q3:Append>false</q3:Append>
+          <q3:Overwrite>true</q3:Overwrite>
+          <q3:Suffix>None</q3:Suffix>
+          <q3:IncludeHeader>false</q3:IncludeHeader>
+        </Builder>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="Zip" />
+      </Expression>
+      <Expression xsi:type="q2:PythonTransform">
+        <q2:Script>import math
+import clr
+clr.AddReference("OpenCV.Net")
+from OpenCV.Net import *
+@returns(float)
+def process(value):
+  if value.Item2 == 1.0:
+    b = value.Item1
+  else:
+    b = 0.0
+  return b</q2:Script>
+      </Expression>
+      <Expression xsi:type="Accumulate" />
+      <Expression xsi:type="Disable">
+        <Builder xsi:type="q3:CsvWriter">
+          <q3:FileName>H:\脑所-实验数据\LP课题\行为测试-其他\OFT\20190219\have_mouse_interact0.csv</q3:FileName>
+          <q3:Append>false</q3:Append>
+          <q3:Overwrite>true</q3:Overwrite>
+          <q3:Suffix>None</q3:Suffix>
+          <q3:IncludeHeader>false</q3:IncludeHeader>
+        </Builder>
+      </Expression>
+      <Expression xsi:type="MemberSelector">
+        <Selector>Item3</Selector>
+      </Expression>
+      <Expression xsi:type="GreaterThan">
+        <Operand xsi:type="DoubleProperty">
+          <Value>0</Value>
+        </Operand>
+      </Expression>
+      <Expression xsi:type="q2:PythonTransform">
+        <q2:Name>have rats time</q2:Name>
+        <q2:Script>import math
+import clr
+clr.AddReference("OpenCV.Net")
+from OpenCV.Net import *
+@returns(float)
+def process(value):
+  a= value/30.0
+  return a</q2:Script>
+      </Expression>
+      <Expression xsi:type="q2:PythonTransform">
+        <q2:Name>condition</q2:Name>
+        <q2:Script>import math
+import clr
+clr.AddReference("OpenCV.Net")
+from OpenCV.Net import *
+@returns(float)
+def process(value):
+  if value &gt;=150:
+    a = 0.0
+  else:
+    a= 1.0
+  return a</q2:Script>
+      </Expression>
+      <Expression xsi:type="ExternalizedProperty">
+        <MemberName>FileName</MemberName>
+        <Name>FileName</Name>
+      </Expression>
+      <Expression xsi:type="ExternalizedProperty">
+        <MemberName>FileName</MemberName>
+        <Name>FileName1</Name>
+      </Expression>
+      <Expression xsi:type="ExternalizedProperty">
+        <MemberName>FileName</MemberName>
+        <Name>FileName2</Name>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q1:Crop">
+          <q1:RegionOfInterest>
+            <q1:X>384</q1:X>
+            <q1:Y>230</q1:Y>
+            <q1:Width>124</q1:Width>
+            <q1:Height>201</q1:Height>
+          </q1:RegionOfInterest>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q1:ColorBalance">
+          <q1:Scale>
+            <q1:Val0>6</q1:Val0>
+            <q1:Val1>6</q1:Val1>
+            <q1:Val2>6</q1:Val2>
+            <q1:Val3>1</q1:Val3>
+          </q1:Scale>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q1:MorphologicalOperator">
+          <q1:Size>
+            <q1:Width>5</q1:Width>
+            <q1:Height>5</q1:Height>
+          </q1:Size>
+          <q1:Anchor>
+            <q1:X>-1</q1:X>
+            <q1:Y>-1</q1:Y>
+          </q1:Anchor>
+          <q1:Shape>Rectangle</q1:Shape>
+          <q1:Iterations>1</q1:Iterations>
+          <q1:Operation>Close</q1:Operation>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q4:Sum" />
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q1:Normalize" />
+      </Expression>
+      <Expression xsi:type="MemberSelector">
+        <Selector>Item3.Val0</Selector>
+      </Expression>
+      <Expression xsi:type="Condition">
+        <Workflow>
+          <Nodes>
+            <Expression xsi:type="WorkflowInput">
+              <Name>Source1</Name>
+            </Expression>
+            <Expression xsi:type="WorkflowOutput" />
+          </Nodes>
+          <Edges>
+            <Edge>
+              <From>0</From>
+              <To>1</To>
+              <Label>Source1</Label>
+            </Edge>
+          </Edges>
+        </Workflow>
+      </Expression>
+      <Expression xsi:type="Condition">
+        <Workflow>
+          <Nodes>
+            <Expression xsi:type="WorkflowInput">
+              <Name>Source1</Name>
+            </Expression>
+            <Expression xsi:type="WorkflowOutput" />
+          </Nodes>
+          <Edges>
+            <Edge>
+              <From>0</From>
+              <To>1</To>
+              <Label>Source1</Label>
+            </Edge>
+          </Edges>
+        </Workflow>
+      </Expression>
+      <Expression xsi:type="NestedWorkflow">
+        <Name>SafeCount</Name>
+        <Workflow>
+          <Nodes>
+            <Expression xsi:type="Add">
+              <Operand xsi:type="IntProperty">
+                <Value>1</Value>
+              </Operand>
+            </Expression>
+            <Expression xsi:type="MemberSelector">
+              <Selector>Index</Selector>
+            </Expression>
+            <Expression xsi:type="WorkflowInput">
+              <Name>Source1</Name>
+            </Expression>
+            <Expression xsi:type="WorkflowOutput" />
+            <Expression xsi:type="Combinator">
+              <Combinator xsi:type="ElementIndex" />
+            </Expression>
+          </Nodes>
+          <Edges>
+            <Edge>
+              <From>0</From>
+              <To>3</To>
+              <Label>Source1</Label>
+            </Edge>
+            <Edge>
+              <From>1</From>
+              <To>0</To>
+              <Label>Source1</Label>
+            </Edge>
+            <Edge>
+              <From>2</From>
+              <To>4</To>
+              <Label>Source1</Label>
+            </Edge>
+            <Edge>
+              <From>4</From>
+              <To>1</To>
+              <Label>Source1</Label>
+            </Edge>
+          </Edges>
+        </Workflow>
+      </Expression>
+      <Expression xsi:type="Condition">
+        <Name>Safe Area</Name>
+        <Workflow>
+          <Nodes>
+            <Expression xsi:type="WorkflowInput">
+              <Name>Source1</Name>
+            </Expression>
+            <Expression xsi:type="WorkflowOutput" />
+          </Nodes>
+          <Edges>
+            <Edge>
+              <From>0</From>
+              <To>1</To>
+              <Label>Source1</Label>
+            </Edge>
+          </Edges>
+        </Workflow>
+      </Expression>
+      <Expression xsi:type="NestedWorkflow">
+        <Name>SafeCount</Name>
+        <Workflow>
+          <Nodes>
+            <Expression xsi:type="Add">
+              <Operand xsi:type="IntProperty">
+                <Value>1</Value>
+              </Operand>
+            </Expression>
+            <Expression xsi:type="MemberSelector">
+              <Selector>Index</Selector>
+            </Expression>
+            <Expression xsi:type="WorkflowInput">
+              <Name>Source1</Name>
+            </Expression>
+            <Expression xsi:type="WorkflowOutput" />
+            <Expression xsi:type="Combinator">
+              <Combinator xsi:type="ElementIndex" />
+            </Expression>
+          </Nodes>
+          <Edges>
+            <Edge>
+              <From>0</From>
+              <To>3</To>
+              <Label>Source1</Label>
+            </Edge>
+            <Edge>
+              <From>1</From>
+              <To>0</To>
+              <Label>Source1</Label>
+            </Edge>
+            <Edge>
+              <From>2</From>
+              <To>4</To>
+              <Label>Source1</Label>
+            </Edge>
+            <Edge>
+              <From>4</From>
+              <To>1</To>
+              <Label>Source1</Label>
+            </Edge>
+          </Edges>
+        </Workflow>
+      </Expression>
+    </Nodes>
+    <Edges>
+      <Edge>
+        <From>0</From>
+        <To>1</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>1</From>
+        <To>2</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>2</From>
+        <To>3</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>3</From>
+        <To>5</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>3</From>
+        <To>16</To>
+        <Label>Source2</Label>
+      </Edge>
+      <Edge>
+        <From>4</From>
+        <To>18</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>4</From>
+        <To>6</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>4</From>
+        <To>54</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>6</From>
+        <To>7</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>7</From>
+        <To>8</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>8</From>
+        <To>9</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>9</From>
+        <To>10</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>9</From>
+        <To>58</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>10</From>
+        <To>11</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>11</From>
+        <To>12</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>11</From>
+        <To>14</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>12</From>
+        <To>13</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>12</From>
+        <To>25</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>15</From>
+        <To>0</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>15</From>
+        <To>20</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>16</From>
+        <To>17</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>17</From>
+        <To>22</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>17</From>
+        <To>23</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>18</From>
+        <To>19</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>19</From>
+        <To>15</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>20</From>
+        <To>55</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>21</From>
+        <To>16</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>23</From>
+        <To>24</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>23</From>
+        <To>26</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>23</From>
+        <To>31</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>23</From>
+        <To>47</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>23</From>
+        <To>59</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>26</From>
+        <To>29</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>27</From>
+        <To>28</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>28</From>
+        <To>43</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>29</From>
+        <To>30</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>30</From>
+        <To>60</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>31</From>
+        <To>34</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>31</From>
+        <To>37</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>32</From>
+        <To>33</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>33</From>
+        <To>39</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>34</From>
+        <To>35</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>35</From>
+        <To>61</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>36</From>
+        <To>38</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>37</From>
+        <To>62</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>38</From>
+        <To>39</To>
+        <Label>Source2</Label>
+      </Edge>
+      <Edge>
+        <From>39</From>
+        <To>40</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>40</From>
+        <To>41</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>41</From>
+        <To>42</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>43</From>
+        <To>44</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>44</From>
+        <To>45</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>45</From>
+        <To>46</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>48</From>
+        <To>63</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>49</From>
+        <To>50</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>50</From>
+        <To>43</To>
+        <Label>Source2</Label>
+      </Edge>
+      <Edge>
+        <From>51</From>
+        <To>4</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>52</From>
+        <To>42</To>
+        <Label>Source2</Label>
+      </Edge>
+      <Edge>
+        <From>53</From>
+        <To>46</To>
+        <Label>Source2</Label>
+      </Edge>
+      <Edge>
+        <From>54</From>
+        <To>23</To>
+        <Label>Source2</Label>
+      </Edge>
+      <Edge>
+        <From>55</From>
+        <To>56</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>56</From>
+        <To>21</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>57</From>
+        <To>23</To>
+        <Label>Source3</Label>
+      </Edge>
+      <Edge>
+        <From>58</From>
+        <To>57</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>59</From>
+        <To>48</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>60</From>
+        <To>27</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>61</From>
+        <To>32</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>62</From>
+        <To>36</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>63</From>
+        <To>64</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>64</From>
+        <To>49</To>
+        <Label>Source1</Label>
+      </Edge>
+    </Edges>
+  </Workflow>
+  <ExtensionTypes>
+    <Type>Bonsai.Vision.AdaptiveThreshold, Bonsai.Vision, Version=2.4.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.FindContours, Bonsai.Vision, Version=2.4.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.BinaryRegionAnalysis, Bonsai.Vision, Version=2.4.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.LargestBinaryRegion, Bonsai.Vision, Version=2.4.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.FileCapture, Bonsai.Vision, Version=2.4.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.Crop, Bonsai.Vision, Version=2.4.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.ColorBalance, Bonsai.Vision, Version=2.4.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.Grayscale, Bonsai.Vision, Version=2.4.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Reactive.Zip, Bonsai.Core, Version=2.4.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Scripting.PythonTransform, Bonsai.Scripting, Version=2.4.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.GoodFeaturesToTrack, Bonsai.Vision, Version=2.4.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Reactive.GateInterval, Bonsai.Core, Version=2.4.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Reactive.DistinctUntilChanged, Bonsai.Core, Version=2.4.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Reactive.AccumulateBuilder, Bonsai.Core, Version=2.4.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.IO.CsvWriter, Bonsai.System, Version=2.4.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Expressions.GreaterThanBuilder, Bonsai.Core, Version=2.4.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Expressions.DoubleProperty, Bonsai.Core, Version=2.4.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.MorphologicalOperator, Bonsai.Vision, Version=2.4.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Dsp.Sum, Bonsai.Dsp, Version=2.4.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.Normalize, Bonsai.Vision, Version=2.4.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Expressions.AddBuilder, Bonsai.Core, Version=2.4.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Expressions.IntProperty, Bonsai.Core, Version=2.4.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Reactive.ElementIndex, Bonsai.Core, Version=2.4.0.0, Culture=neutral, PublicKeyToken=null</Type>
+  </ExtensionTypes>
+</WorkflowBuilder>
