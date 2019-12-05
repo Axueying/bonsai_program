@@ -1,2 +1,3 @@
-# bonsai_program-rats_interact-situation1-
-适合两只小鼠，统计外面小鼠与笼子里面小鼠交互次数
+# 关于bonsai的程序
+
+有很多bonsai的程序代码，用于动物的行为分析；陪套视频进行解释
